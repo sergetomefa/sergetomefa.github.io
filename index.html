@@ -3,10 +3,562 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ma première page</title>
+    <title>Lecteur d'octets - Base 10</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #60a5fa;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+
+        .upload-zone {
+            border: 3px dashed #3b82f6;
+            border-radius: 16px;
+            padding: 60px 40px;
+            text-align: center;
+            background: #1e293b;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 30px;
+        }
+
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: #60a5fa;
+            background: #1e293b;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
+        }
+
+        .upload-zone input {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            font-size: 1.2rem;
+            color: #94a3b8;
+        }
+
+        .file-info {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .file-info h3 {
+            color: #60a5fa;
+            margin-bottom: 10px;
+        }
+
+        .file-info p {
+            color: #94a3b8;
+            line-height: 1.6;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .controls label {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .controls input, .controls select {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #e2e8f0;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .controls button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .controls button:hover {
+            background: #2563eb;
+        }
+
+        .bytes-display {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            display: none;
+        }
+
+        .bytes-display.show {
+            display: block;
+        }
+
+        .bytes-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .bytes-header h3 {
+            color: #60a5fa;
+        }
+
+        .bytes-count {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .bytes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 8px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .byte-cell {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 10px 5px;
+            text-align: center;
+            transition: all 0.2s;
+            cursor: default;
+        }
+
+        .byte-cell:hover {
+            border-color: #60a5fa;
+            background: #1e293b;
+            transform: scale(1.1);
+            z-index: 1;
+        }
+
+        .byte-value {
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #34d399;
+        }
+
+        .byte-index {
+            font-size: 0.7rem;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .byte-ascii {
+            font-size: 0.75rem;
+            color: #fbbf24;
+            margin-top: 2px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #334155;
+            border-radius: 3px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-bar.show {
+            display: block;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #3b82f6;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #64748b;
+            padding: 40px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #0f172a;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #60a5fa;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 5px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #10b981;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.error {
+            background: #ef4444;
+        }
+
+        /* Scrollbar personnalisée */
+        .bytes-grid::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .bytes-grid::-webkit-scrollbar-track {
+            background: #0f172a;
+            border-radius: 4px;
+        }
+
+        .bytes-grid::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+
+        .bytes-grid::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
 </head>
 <body>
-    <h1>Bonjour le monde !</h1>
-    <p>Ceci est le contenu de base de la page.</p>
+    <div class="container">
+        <h1>🔢 Lecteur d'octets en Base 10</h1>
+
+        <div class="upload-zone" id="uploadZone">
+            <input type="file" id="fileInput">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">
+                Glissez-déposez un fichier ici<br>
+                <small>ou cliquez pour sélectionner</small>
+            </div>
+        </div>
+
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="file-info" id="fileInfo">
+            <h3>📄 Informations du fichier</h3>
+            <p id="fileDetails"></p>
+        </div>
+
+        <div class="stats" id="stats" style="display: none;">
+            <div class="stat-card">
+                <div class="stat-value" id="statSize">0</div>
+                <div class="stat-label">Taille (octets)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statMin">0</div>
+                <div class="stat-label">Valeur min</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statMax">0</div>
+                <div class="stat-label">Valeur max</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statAvg">0</div>
+                <div class="stat-label">Moyenne</div>
+            </div>
+        </div>
+
+        <div class="controls" id="controls" style="display: none;">
+            <label>
+                Offset:
+                <input type="number" id="offsetInput" value="0" min="0" style="width: 100px;">
+            </label>
+            <label>
+                Limite:
+                <input type="number" id="limitInput" value="1000" min="1" max="10000" style="width: 100px;">
+            </label>
+            <button onclick="applyFilter()">Appliquer</button>
+            <button onclick="exportCSV()">📥 Exporter CSV</button>
+            <button onclick="copyAll()">📋 Copier tout</button>
+        </div>
+
+        <div class="bytes-display" id="bytesDisplay">
+            <div class="bytes-header">
+                <h3>📊 Octets (Base 10)</h3>
+                <span class="bytes-count" id="bytesCount"></span>
+            </div>
+            <div class="bytes-grid" id="bytesGrid">
+                <div class="empty-state">Aucun octet à afficher</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let currentBytes = [];
+        let currentFile = null;
+
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileDetails = document.getElementById('fileDetails');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const bytesDisplay = document.getElementById('bytesDisplay');
+        const bytesGrid = document.getElementById('bytesGrid');
+        const bytesCount = document.getElementById('bytesCount');
+        const controls = document.getElementById('controls');
+        const stats = document.getElementById('stats');
+        const toast = document.getElementById('toast');
+
+        // Gestion du drag & drop
+        uploadZone.addEventListener('click', () => fileInput.click());
+
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            currentFile = file;
+            
+            // Afficher les infos du fichier
+            fileDetails.innerHTML = `
+                <strong>Nom :</strong> ${file.name}<br>
+                <strong>Type :</strong> ${file.type || 'Inconnu'}<br>
+                <strong>Taille :</strong> ${formatBytes(file.size)}<br>
+                <strong>Dernière modification :</strong> ${new Date(file.lastModified).toLocaleString('fr-FR')}
+            `;
+            fileInfo.classList.add('show');
+
+            // Lire le fichier
+            readFile(file);
+        }
+
+        function readFile(file) {
+            progressBar.classList.add('show');
+            progressFill.style.width = '0%';
+
+            const reader = new FileReader();
+
+            reader.onprogress = (e) => {
+                if (e.lengthComputable) {
+                    const percent = (e.loaded / e.total) * 100;
+                    progressFill.style.width = percent + '%';
+                }
+            };
+
+            reader.onload = (e) => {
+                const arrayBuffer = e.target.result;
+                const uint8Array = new Uint8Array(arrayBuffer);
+                currentBytes = Array.from(uint8Array);
+
+                progressFill.style.width = '100%';
+                setTimeout(() => {
+                    progressBar.classList.remove('show');
+                }, 500);
+
+                updateStats();
+                controls.style.display = 'flex';
+                stats.style.display = 'grid';
+                applyFilter();
+                showToast('✅ Fichier chargé avec succès !');
+            };
+
+            reader.onerror = () => {
+                showToast('❌ Erreur lors de la lecture du fichier', true);
+                progressBar.classList.remove('show');
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        function updateStats() {
+            if (currentBytes.length === 0) return;
+
+            document.getElementById('statSize').textContent = currentBytes.length.toLocaleString('fr-FR');
+            document.getElementById('statMin').textContent = Math.min(...currentBytes);
+            document.getElementById('statMax').textContent = Math.max(...currentBytes);
+            document.getElementById('statAvg').textContent = (currentBytes.reduce((a, b) => a + b, 0) / currentBytes.length).toFixed(2);
+        }
+
+        function applyFilter() {
+            const offset = parseInt(document.getElementById('offsetInput').value) || 0;
+            const limit = parseInt(document.getElementById('limitInput').value) || 1000;
+
+            const sliced = currentBytes.slice(offset, offset + limit);
+            displayBytes(sliced, offset);
+        }
+
+        function displayBytes(bytes, startOffset) {
+            if (bytes.length === 0) {
+                bytesGrid.innerHTML = '<div class="empty-state">Aucun octet à afficher</div>';
+                bytesDisplay.classList.add('show');
+                return;
+            }
+
+            bytesGrid.innerHTML = '';
+            
+            bytes.forEach((byte, i) => {
+                const globalIndex = startOffset + i;
+                const ascii = byte >= 32 && byte <= 126 ? String.fromCharCode(byte) : '·';
+                
+                const cell = document.createElement('div');
+                cell.className = 'byte-cell';
+                cell.innerHTML = `
+                    <div class="byte-value">${byte}</div>
+                    <div class="byte-index">#${globalIndex}</div>
+                    <div class="byte-ascii">${ascii}</div>
+                `;
+                cell.title = `Index: ${globalIndex}\nValeur: ${byte}\nASCII: ${ascii === '·' ? 'Non imprimable' : ascii}`;
+                bytesGrid.appendChild(cell);
+            });
+
+            bytesCount.textContent = `Affichage ${startOffset} - ${startOffset + bytes.length - 1} / ${currentBytes.length.toLocaleString('fr-FR')} octets`;
+            bytesDisplay.classList.add('show');
+        }
+
+        function exportCSV() {
+            if (currentBytes.length === 0) {
+                showToast('❌ Aucun fichier chargé', true);
+                return;
+            }
+
+            const offset = parseInt(document.getElementById('offsetInput').value) || 0;
+            const limit = parseInt(document.getElementById('limitInput').value) || 1000;
+            const sliced = currentBytes.slice(offset, offset + limit);
+
+            let csv = 'Index,Valeur (Base 10),Hexadécimal,ASCII\n';
+            sliced.forEach((byte, i) => {
+                const globalIndex = offset + i;
+                const ascii = byte >= 32 && byte <= 126 ? String.fromCharCode(byte) : '';
+                csv += `${globalIndex},${byte},0x${byte.toString(16).padStart(2, '0').toUpperCase()},"${ascii}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `octets_${currentFile ? currentFile.name : 'export'}.csv`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+
+            showToast('📥 Export CSV réussi !');
+        }
+
+        function copyAll() {
+            if (currentBytes.length === 0) {
+                showToast('❌ Aucun fichier chargé', true);
+                return;
+            }
+
+            const text = currentBytes.join(', ');
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('📋 Copié dans le presse-papiers !');
+            }).catch(() => {
+                showToast('❌ Erreur de copie', true);
+            });
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 octets';
+            const k = 1024;
+            const sizes = ['octets', 'Ko', 'Mo', 'Go', 'To'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function showToast(message, isError = false) {
+            toast.textContent = message;
+            toast.className = 'toast' + (isError ? ' error' : '') + ' show';
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
 </body>
 </html>
