@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Rotative Responsive</title>
-     <link rel="icon" type="image/png" href="./icon.png">
+    <title>Full Scale Release Gate</title>
+    <link rel="icon" type="image/png" href="./icon.png">
     <style>
         * {
             margin: 0;
@@ -19,6 +19,97 @@
             background: black;
         }
 
+        /* ===== LOADER ===== */
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+
+        .loader-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .loader-ring {
+            width: 80px;
+            height: 80px;
+            border: 3px solid rgba(0, 240, 255, 0.1);
+            border-top-color: #00f0ff;
+            border-radius: 50%;
+            animation: loaderSpin 1s linear infinite;
+        }
+
+        .loader-ring-inner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 45, 122, 0.1);
+            border-top-color: #ff2d7a;
+            border-radius: 50%;
+            animation: loaderSpin 1.5s linear infinite reverse;
+            position: absolute;
+        }
+
+        .loader-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loader-text {
+            color: rgba(255, 255, 255, 0.6);
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-top: 24px;
+            animation: loaderPulse 1.5s ease-in-out infinite;
+        }
+
+        .loader-progress {
+            width: 200px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            margin-top: 16px;
+            overflow: hidden;
+        }
+
+        .loader-progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #00f0ff, #ff2d7a);
+            border-radius: 2px;
+            animation: loaderProgress 2s ease-in-out forwards;
+        }
+
+        @keyframes loaderSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes loaderPulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes loaderProgress {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+
+        /* ===== CONTENU PRINCIPAL ===== */
         .container {
             width: 100vw;
             height: 100vh;
@@ -29,7 +120,6 @@
         }
 
         .image-wrapper {
-            /* L'image carrée prend toute la largeur disponible sans déborder */
             width: min(100vw - 40px, 100vh - 40px);
             aspect-ratio: 1 / 1;
             position: relative;
@@ -40,22 +130,14 @@
             height: 100%;
             object-fit: cover;
             border-radius: 16px;
-            /* Animation de rotation sur elle-même */
             animation: spin 20s linear infinite;
-            /* Ombre pour l'esthétique */
-
         }
 
         @keyframes spin {
-            from {
-                transform: rotate(0deg);
-            }
-            to {
-                transform: rotate(360deg);
-            }
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
-        /* Effet de halo autour de l'image */
         .image-wrapper::before {
             content: '';
             position: absolute;
@@ -64,14 +146,11 @@
             right: -10px;
             bottom: -10px;
             border-radius: 24px;
- 
             opacity: 0.3;
             animation: spin 20s linear infinite;
             z-index: -1;
-            
         }
 
-        /* Texte indicatif */
         .label {
             position: fixed;
             bottom: 30px;
@@ -85,12 +164,25 @@
             pointer-events: none;
         }
     </style>
+    <base target="_blank">
 <base target="_blank">
 </head>
 <body>
+    <!-- LOADER -->
+    <div class="loader-overlay" id="loader">
+        <div class="loader-wrapper">
+            <div class="loader-ring"></div>
+            <div class="loader-ring-inner"></div>
+        </div>
+        <div class="loader-text">Full Scale Release Gate</div>
+        <div class="loader-progress">
+            <div class="loader-progress-bar"></div>
+        </div>
+    </div>
+
+    <!-- CONTENU PRINCIPAL -->
     <div class="container">
         <div class="image-wrapper">
-            <!-- Remplacez src par le chemin de votre image -->
             <img 
                 src="./earth.png" 
                 alt="Image rotative" 
@@ -100,18 +192,24 @@
         </div>
     </div>
 
+    <div class="label">Full Scale Release Gate</div>
 
     <script>
-        // Détection si l'image ne charge pas (fallback)
+        // ===== LOADER =====
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                document.getElementById('loader').classList.add('hidden');
+            }, 2200);
+        });
+
+        // ===== FALLBACK IMAGE =====
         const img = document.getElementById('mainImage');
         img.onerror = function() {
-            // Crée un canvas avec un pattern si l'image externe échoue
             const canvas = document.createElement('canvas');
             canvas.width = 800;
             canvas.height = 800;
             const ctx = canvas.getContext('2d');
 
-            // Dessiner un motif géométrique
             const gradient = ctx.createLinearGradient(0, 0, 800, 800);
             gradient.addColorStop(0, '#0f172a');
             gradient.addColorStop(0.5, '#1e293b');
@@ -119,7 +217,6 @@
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, 800, 800);
 
-            // Cercles concentriques
             for (let i = 0; i < 20; i++) {
                 ctx.beginPath();
                 ctx.arc(400, 400, i * 20, 0, Math.PI * 2);
@@ -128,7 +225,6 @@
                 ctx.stroke();
             }
 
-            // Lignes diagonales
             ctx.strokeStyle = 'rgba(124, 58, 237, 0.2)';
             ctx.lineWidth = 1;
             for (let i = -800; i < 1600; i += 40) {
@@ -138,7 +234,6 @@
                 ctx.stroke();
             }
 
-            // Texte central
             ctx.fillStyle = '#00f0ff';
             ctx.font = 'bold 60px Arial';
             ctx.textAlign = 'center';
